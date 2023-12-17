@@ -2062,6 +2062,11 @@
   "resolved" "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.11.tgz"
   "version" "15.7.11"
 
+"@types/react-native-sqlite-storage@^6.0.5":
+  "integrity" "sha512-1gPwgYil6pHV/EDF816M8KmVsQC5nGMTAm8OMC25GbyuBaXFn7sdguMq6A2owtXB8c4qsH2tOEIQNetbOquawA=="
+  "resolved" "https://registry.npmjs.org/@types/react-native-sqlite-storage/-/react-native-sqlite-storage-6.0.5.tgz"
+  "version" "6.0.5"
+
 "@types/react-test-renderer@^18.0.0":
   "integrity" "sha512-1+ANPOWc6rB3IkSnElhjv6VLlKg2dSv/OWClUyZimbLsQyBn8Js9Vtdsi3UICJ2rIQ3k2la06dkB+C92QfhKmg=="
   "resolved" "https://registry.npmjs.org/@types/react-test-renderer/-/react-test-renderer-18.0.7.tgz"
@@ -5646,7 +5651,12 @@
   "resolved" "https://registry.npmjs.org/react-native-permissions/-/react-native-permissions-4.0.1.tgz"
   "version" "4.0.1"
 
-"react-native@*", "react-native@>= 0.64.3", "react-native@>=0.70.0", "react-native@0.73.0":
+"react-native-sqlite-storage@^6.0.1":
+  "integrity" "sha512-1tDFjrint6X6qSYKf3gDyz+XB+X79jfiL6xTugKHPRtF0WvqMtVgdLuNqZunIXjNEvNtNVEbXaeZ6MsguFu00A=="
+  "resolved" "https://registry.npmjs.org/react-native-sqlite-storage/-/react-native-sqlite-storage-6.0.1.tgz"
+  "version" "6.0.1"
+
+"react-native@*", "react-native@>= 0.64.3", "react-native@>=0.14.0", "react-native@>=0.70.0", "react-native@0.73.0":
   "integrity" "sha512-ya7wu/L8BeATv2rtXZDToYyD9XuTTDCByi8LvJGr6GKSXcmokkCRMGAiTEZfPkq7+nhVmbasjtoAJDuMRYfudQ=="
   "resolved" "https://registry.npmjs.org/react-native/-/react-native-0.73.0.tgz"
   "version" "0.73.0"

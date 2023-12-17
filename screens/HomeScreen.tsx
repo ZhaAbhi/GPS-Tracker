@@ -3,63 +3,119 @@ import {View, StyleSheet, Platform, Text} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
 import {check, PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import GeoLocation from 'react-native-geolocation-service';
+import SQLite, {SQLiteDatabase} from 'react-native-sqlite-storage';
 
-const HomeScreen = () => {
-  const [currentLocation, setCurrentLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+interface Location {
+  latitude: number;
+  longitude: number;
+}
 
+const HomeScreen: React.FC = () => {
+  const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const handleLocationUpdates = (position: any) => {
-    const {latitude, longitude} = position.coords;
-    console.log(latitude, longitude);
-    setCurrentLocation({latitude, longitude});
-    setLoading(false);
-  };
+  // Open SQLite database
+  const db: SQLiteDatabase = SQLite.openDatabase(
+    {name: 'location.db', location: 'default'},
+    () => {},
+    error => {
+      console.log('Error opening database:', error);
+    },
+  );
 
-  const requestLocationPermission = async () => {
+  const handleLocationUpdates = async (position: any) => {
     try {
-      const status = await check(
-        Platform.OS === 'ios'
-          ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
-          : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-      );
+      const {latitude, longitude} = position.coords;
+      console.log(latitude, longitude);
 
-      if (status === RESULTS.DENIED) {
-        const result = await request(
-          Platform.OS === 'ios'
-            ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
-            : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+      // Update the marker position on the map
+      setCurrentLocation({latitude, longitude});
+
+      // Save the location data to SQLite
+      db.transaction(tx => {
+        tx.executeSql(
+          'CREATE TABLE IF NOT EXISTS locations (id INTEGER PRIMARY KEY AUTOINCREMENT, latitude REAL, longitude REAL)',
+          [],
+          () => {
+            tx.executeSql(
+              'INSERT INTO locations (latitude, longitude) VALUES (?, ?)',
+              [latitude, longitude],
+              () => {},
+              error => {
+                console.log('Error inserting data:', error);
+              },
+            );
+          },
+          error => {
+            console.log('Error creating table:', error);
+          },
         );
+      });
 
-        if (result === RESULTS.GRANTED) {
-          console.log(result);
-          // Locating user to current position
-        } else {
-          console.log('Permission denied!');
-        }
-      } else {
-        if (status === RESULTS.GRANTED) {
-          const id = GeoLocation.watchPosition(
-            handleLocationUpdates,
-            error => {
-              console.log(error.code, error.message);
-            },
-            {enableHighAccuracy: true},
-          );
-          setWatchId(id);
-        }
-      }
+      setLoading(false);
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
-    requestLocationPermission();
+    const retrieveLastKnownLocation = async () => {
+      db.transaction(tx => {
+        tx.executeSql(
+          'SELECT * FROM locations ORDER BY id DESC LIMIT 1',
+          [],
+          (_, results) => {
+            const {rows} = results;
+            if (rows.length > 0) {
+              const {latitude, longitude} = rows.item(0);
+              setCurrentLocation({latitude, longitude});
+              setLoading(false);
+            }
+          },
+          error => {
+            console.log('Error retrieving data:', error);
+          },
+        );
+      });
+    };
+
+    const watchLocation = async () => {
+      try {
+        const id = GeoLocation.watchPosition(
+          handleLocationUpdates,
+          error => {
+            console.log(error.code, error.message);
+          },
+          {enableHighAccuracy: true},
+        );
+        setWatchId(id);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const requestPermissionAndWatchLocation = async () => {
+      try {
+        const status = await check(
+          Platform.OS === 'ios'
+            ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+            : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+        );
+
+        if (status === RESULTS.GRANTED) {
+          await retrieveLastKnownLocation(); // Retrieve last known location if available
+          await watchLocation(); // Start watching location updates
+        } else {
+          console.log('Permission denied!');
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    requestPermissionAndWatchLocation();
+
     return () => {
       if (watchId) {
         GeoLocation.clearWatch(watchId);
