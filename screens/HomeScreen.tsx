@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, Platform, Text} from 'react-native';
+import {View, StyleSheet, Platform, Text, AppState} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
-import {check, PERMISSIONS, request, RESULTS} from 'react-native-permissions';
+import {check, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import GeoLocation from 'react-native-geolocation-service';
 import SQLite, {SQLiteDatabase} from 'react-native-sqlite-storage';
 
@@ -10,10 +10,10 @@ interface Location {
   longitude: number;
 }
 
-const HomeScreen: React.FC = () => {
+const HomeScreen: React.FC = (): JSX.Element => {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Open SQLite database
   const db: SQLiteDatabase = SQLite.openDatabase(
@@ -58,6 +58,8 @@ const HomeScreen: React.FC = () => {
       console.log(error);
     }
   };
+
+  //TODO: Background Synchronization when the app is running in the background
 
   useEffect(() => {
     const retrieveLastKnownLocation = async () => {
